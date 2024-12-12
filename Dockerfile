@@ -7,7 +7,10 @@ WORKDIR /app
 # Copia os arquivos do projeto para o container
 COPY . .
 
-# Compila o projeto usando Maven (ou outra ferramenta)
+# Garante que o script mvnw seja executável
+RUN chmod +x ./mvnw
+
+# Compila o projeto usando Maven
 RUN ./mvnw clean package -DskipTests
 
 # Usa uma imagem menor para execução da aplicação
