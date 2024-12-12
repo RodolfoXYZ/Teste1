@@ -1,29 +1,18 @@
-# Use uma imagem base com Java 23
-FROM eclipse-temurin:23-jdk as build
+FROM jelastic/maven:3.9.4-openjdk-22.ea-b17 AS build
 
-# Diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia os arquivos do projeto para o container
-COPY . .
+COPY pom.xml .
+COPY src ./src
 
-# Garante que o script mvnw seja executável
-RUN chmod +x ./mvnw
+RUN mvn clean package -DskipTests
 
-# Compila o projeto usando Maven
-RUN ./mvnw clean package -DskipTests
+FROM openjdk:22-jdk
 
-# Usa uma imagem menor para execução da aplicação
-FROM eclipse-temurin:23-jre
-
-# Diretório de trabalho para o runtime
 WORKDIR /app
 
-# Copia o artefato gerado no estágio anterior
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 
-# Expõe a porta que o Spring Boot usará
 EXPOSE 8080
 
-# Comando para iniciar a aplicação
 ENTRYPOINT ["java", "-jar", "app.jar"]
