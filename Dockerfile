@@ -1,23 +1,23 @@
-# Usa imagem Maven para compilar o projeto
-FROM maven:3.9.5-eclipse-temurin-17 AS build
+# Cria uma imagem Maven personalizada com base no Java 23
+FROM openjdk:23-jdk AS maven
+
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copia o arquivo pom.xml e baixa dependências do projeto
+# Agora, use esta imagem no estágio de build
+# Copia arquivos e compila
 COPY pom.xml . 
 RUN mvn dependency:resolve
-
-# Copia o código-fonte e compila o projeto
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Usa imagem OpenJDK para rodar o aplicativo
+# Estágio final com Java 23 para rodar o aplicativo
 FROM openjdk:23-jdk
 
 WORKDIR /app
 
-# Copia o JAR gerado do estágio anterior
-COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=maven /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
